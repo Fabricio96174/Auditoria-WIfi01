@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría de Redes WiFi</title>
+    <link rel="stylesheet" href="/templates/styles.css">
+</head>
+<body>
+    <h1>Auditoría de Redes WiFi</h1>
+
+    <!-- Configuración de la interfaz WiFi -->
+    <h2>Paso 1: Configurar Interfaz</h2>
+    <form id="interfaceForm" action="/set_interface" method="post">
+        <label for="interface">Nombre de la interfaz WiFi:</label>
+        <input type="text" id="interface" name="interface" required>
+        <button type="button" onclick="setInterface()">Configurar interfaz</button>
+    </form>
+    <br>
+
+    <!-- Botón para iniciar el modo monitor -->
+    <h2>Paso 2: Iniciar Modo Monitor</h2>
+    <button onclick="startMonitor()">Iniciar Modo Monitor</button>
+    <br><br>
+
+    <!-- Botón para escanear redes -->
+    <h2>Paso 3: Escanear Redes WiFi</h2>
+    <button onclick="scanNetworks()">Escanear Redes</button>
+    <pre id="scanOutput"></pre>
+
+    <!-- Captura de Handshake -->
+    <h2>Paso 4: Capturar Handshake</h2>
+    <label for="bssid">BSSID:</label>
+    <input type="text" id="bssid" required>
+    <label for="channel">Canal:</label>
+    <input type="text" id="channel" required>
+    <button onclick="captureHandshake()">Capturar Handshake</button>
+    <br><br>
+
+    <!-- Desautenticación -->
+    <h2>Paso 5: Desautenticar Clientes</h2>
+    <button onclick="deauth()">Desautenticar Clientes</button>
+    <br><br>
+
+    <!-- Cargar diccionario y Crack de contraseña -->
+    <h2>Paso 6: Cargar Diccionario y Descifrar Contraseña</h2>
+    <form id="dictionaryForm" enctype="multipart/form-data">
+        <label for="dictionary">Seleccionar diccionario:</label>
+        <input type="file" id="dictionary" name="dictionary" required>
+        <button type="button" onclick="uploadDictionary()">Cargar Diccionario</button>
+    </form>
+    <button onclick="crackPassword()">Descifrar Contraseña</button>
+    <pre id="crackOutput"></pre>
+
+    <!-- Detener el modo monitor -->
+    <h2>Paso 7: Detener Modo Monitor</h2>
+    <button onclick="stopMonitor()">Detener Modo Monitor</button>
+
+    <script>
+        async function setInterface() {
+            const interface = document.getElementById("interface").value;
+            const response = await fetch('/set_interface', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `interface=${interface}`
+            });
+            alert((await response.json()).status);
+        }
+
+        async function startMonitor() {
+            const response = await fetch('/start_monitor', { method: 'POST' });
+            alert((await response.json()).status);
+        }
+
+        async function scanNetworks() {
+            const response = await fetch('/scan_networks', { method: 'POST' });
+            document.getElementById("scanOutput").innerText = (await response.json()).output;
+        }
+
+        async function captureHandshake() {
+            const bssid = document.getElementById("bssid").value;
+            const channel = document.getElementById("channel").value;
+            const response = await fetch('/capture_handshake', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bssid, channel })
+            });
+            alert((await response.json()).status);
+        }
+
+        async function deauth() {
+            const response = await fetch('/deauth', { method: 'POST' });
+            alert((await response.json()).status);
+        }
+
+        async function uploadDictionary() {
+            const formData = new FormData(document.getElementById("dictionaryForm"));
+            const response = await fetch('/upload_dictionary', {
+                method: 'POST',
+                body: formData
+            });
+            alert((await response.json()).status);
+        }
+
+        async function crackPassword() {
+            const response = await fetch('/crack_password', { method: 'POST' });
+            document.getElementById("crackOutput").innerText = (await response.json()).output;
+        }
+
+        async function stopMonitor() {
+            const response = await fetch('/stop_monitor', { method: 'POST' });
+            alert((await response.json()).status);
+        }
+    </script>
+</body>
+</html>

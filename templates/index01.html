@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría de Redes WiFi</title>
+    <link rel="stylesheet" href="/templates/styles.css">
+    <style>
+        /* Estilos para el tema hacker */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: #121212;
+            color: #00FF00;
+            font-size: 18px;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            color: #00FF00;
+            font-size: 2em;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 3em;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        h2 {
+            margin-top: 20px;
+        }
+
+        /* Estilo de formularios y botones */
+        input[type="text"], input[type="file"], button {
+            background-color: #1a1a1a;
+            color: #00FF00;
+            border: 1px solid #00FF00;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 16px;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        input[type="text"]:focus, input[type="file"]:focus, button:focus {
+            outline: none;
+            border-color: #FF6347; /* Rojo hacker */
+        }
+
+        button {
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #00FF00;
+            color: #121212;
+        }
+
+        button:active {
+            background-color: #FF6347;
+        }
+
+        /* Listas de redes y tablas */
+        #networksList, #csv-display {
+            background-color: #1a1a1a;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 20px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+        }
+
+        #csv-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #csv-table th, #csv-table td {
+            padding: 10px;
+            border: 1px solid #00FF00;
+        }
+
+        #csv-table th {
+            background-color: #333;
+            text-align: left;
+        }
+
+        #csv-table td {
+            background-color: #222;
+        }
+
+        /* Interactividad con la consola */
+        pre {
+            background-color: #333;
+            color: #00FF00;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Para hacer que el texto y botones se alineen mejor */
+        form {
+            margin: 20px 0;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        /* Fondo animado */
+        body {
+            background: #121212;
+            animation: glitch 3s infinite linear;
+        }
+
+        @keyframes glitch {
+            0% {
+                background-color: #121212;
+            }
+            50% {
+                background-color: #1a1a1a;
+            }
+            100% {
+                background-color: #121212;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Auditoría de Redes WiFi</h1>
+
+    <!-- Configuración de la interfaz WiFi -->
+    <h2>Paso 1: Configurar Interfaz</h2>
+    <form id="interfaceForm" action="/set_interface" method="post">
+        <label for="interface">Nombre de la interfaz WiFi:</label>
+        <input type="text" id="interface" name="interface" required>
+        <button type="button" onclick="setInterface()">Configurar interfaz</button>
+    </form>
+    <br>
+
+    <!-- Botón para iniciar el modo monitor -->
+    <h2>Paso 2: Iniciar Modo Monitor</h2>
+    <button onclick="startMonitor()">Iniciar Modo Monitor</button>
+    <br><br>
+
+    
+    
+    
+    
+    <h1>Escaneo de Redes WiFi</h1>
+    <h2>Paso 3: Escanear Redes WiFi</h2>
+    <button id="scan-btn">Escanear Redes</button>
+
+    <div id="networksList"></div> <!-- Aquí se mostrarán las redes escaneadas -->
+
+    <h2>Redes WiFi Guardadas en CSV (JSON)</h2>
+    <div id="csv-display">
+        <table id="csv-table">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        let networksData = [];
+
+        // Cuando la página carga, mostrar los datos guardados en el archivo CSV
+        window.onload = function() {
+            fetch('/get_saved_csv')
+                .then(response => response.json())
+                .then(data => {
+                    displayCSV(data); // Mostrar datos en formato JSON
+                })
+                .catch(error => {
+                    console.error('Error al cargar el archivo CSV:', error);
+                });
+        };
+
+        // Función para escanear redes WiFi
+        async function scanNetworks() {
+            // Realizar una solicitud AJAX para escanear las redes
+            const response = await fetch('/scan_wifi', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.status === 'Escaneo completo') {
+                networksData = data.networks; // Guardamos los datos de las redes
+                displayNetworks(networksData); // Mostrar las redes
+                displayCSV(networksData); // Mostrar en formato CSV
+            } else {
+                alert(data.status);
+            }
+        }
+
+        // Función para mostrar las redes WiFi
+        function displayNetworks(networks) {
+            let networksList = "<ul>";
+            networks.forEach(net => {
+                networksList += `
+                    <li>
+                        <strong>SSID:</strong> ${net.essid || "N/A"} 
+                        | <strong>Canal:</strong> ${net.channel} 
+                        | <strong>Potencia:</strong> ${net.pwr} 
+                        | <strong>BSSID:</strong> ${net.bssid}
+                    </li>`;
+            });
+            networksList += "</ul>";
+            document.getElementById("networksList").innerHTML = networksList;
+        }
+
+        // Función para mostrar los datos CSV en una tabla
+        function displayCSV(networks) {
+            const table = document.getElementById('csv-table');
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+
+            // Limpiar la tabla antes de cargar nuevos datos
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            // Cabeceras
+            const headers = ['SSID', 'Canal', 'Potencia', 'BSSID'];
+            const headerRow = document.createElement('tr');
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+
+            // Filas de datos
+            networks.forEach(network => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${network.essid || "N/A"}</td>
+                    <td>${network.channel}</td>
+                    <td>${network.pwr}</td>
+                    <td>${network.bssid}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Evento para el botón de escanear redes
+        document.getElementById('scan-btn').addEventListener('click', scanNetworks);
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+   <!-- Captura de Handshake -->
+<h2>Paso 4: Capturar Handshake</h2>
+<label for="bssid">BSSID:</label>
+<input type="text" id="bssid" required>
+<label for="channel">Canal:</label>
+<input type="text" id="channel" required>
+<button type="button" onclick="captureHandshake()">Capturar Handshake</button>
+<br><br>
+
+<!-- Desautenticación -->
+<h2>Paso 5: Desautenticar Clientes</h2>
+<button type="button" onclick="deauth()">Desautenticar Clientes</button>
+<br><br>
+
+<script>
+  // Función para capturar el handshake y desautenticar clientes
+  function captureHandshake() {
+    const bssid = document.getElementById("bssid").value;
+    const channel = document.getElementById("channel").value;
+
+    if (!bssid || !channel) {
+      alert("Por favor, ingrese BSSID y Canal.");
+      return;
+    }
+
+    // Enviar los datos al servidor para iniciar la captura y desautenticación
+    fetch('/capture_handshake', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        bssid: bssid,
+        channel: channel
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.status);
+      // Aquí puedes agregar alguna lógica para mostrar información adicional o cambiar el estado de la interfaz.
+    })
+    .catch(error => {
+      alert('Error: ' + error);
+    });
+  }
+
+  // Función para desautenticar clientes
+  function deauth() {
+    const bssid = document.getElementById("bssid").value;
+
+    if (!bssid) {
+      alert("Por favor, ingrese el BSSID.");
+      return;
+    }
+
+    // Enviar la solicitud de desautenticación al servidor
+    fetch('/deauth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        bssid: bssid
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.status);
+      // Aquí puedes agregar lógica adicional si es necesario.
+    })
+    .catch(error => {
+      alert('Error: ' + error);
+    });
+  }
+</script>
+
+
+<!-- Cargar diccionario y Crack de contraseña -->
+<h2>Paso 6: Cargar Diccionario y Descifrar Contraseña</h2>
+<form id="crackForm" action="/crack_password" method="POST" enctype="multipart/form-data">
+    <label for="dictionary">Seleccionar diccionario (rockyou.txt):</label>
+    <input type="file" id="dictionary" name="dictionary" required>
+    <br><br>
+    <label for="capture">Seleccionar archivo de captura (.cap):</label>
+    <input type="file" id="capture" name="capture" required>
+    <br><br>
+    <label for="bssid">BSSID:</label>
+    <input type="text" id="bssid" name="bssid" required>
+    <br><br>
+    <button type="submit">Descifrar Contraseña</button>
+</form>
+<pre id="crackOutput"></pre>
+
+<script>
+    const form = document.getElementById("crackForm");
+    const outputElement = document.getElementById("crackOutput");
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault(); // Evita que el formulario se envíe de forma tradicional
+
+        const formData = new FormData(form);
+        outputElement.textContent = "Procesando...";
+
+        try {
+            // Verifica que los archivos y el BSSID están presentes
+            if (!formData.get("dictionary") || !formData.get("capture") || !formData.get("bssid")) {
+                outputElement.textContent = "Error: Asegúrate de subir los archivos y llenar el BSSID.";
+                return;
+            }
+
+            const response = await fetch("/crack_password", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || "Error desconocido del servidor");
+            }
+
+            outputElement.textContent =
+                data.output || "Cracking completado, pero no se encontró la contraseña.";
+        } catch (error) {
+            console.error("Error en la solicitud:", error);
+            outputElement.textContent = `Error: ${error.message}`;
+        }
+    });
+</script>
+
+
+
+
+
+
+    <!-- Detener el modo monitor -->
+    <h2>Paso 7: Detener Modo Monitor</h2>
+    <button onclick="stopMonitor()">Detener Modo Monitor</button>
+
+    <script>
+        let scannedNetworks = []; // Variable para almacenar las redes escaneadas
+
+        async function setInterface() {
+            const interface = document.getElementById("interface").value;
+            const response = await fetch('/set_interface', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `interface=${interface}`
+            });
+            alert((await response.json()).status);
+        }
+
+        async function startMonitor() {
+            const response = await fetch('/start_monitor', { method: 'POST' });
+            alert((await response.json()).status);
+        }
+
+        async function scanNetworks() {
+            const response = await fetch('/scan_wifi', { method: 'POST' });
+            const data = await response.json();
+
+            scannedNetworks = data.networks || []; // Guardar las redes en una variable
+            document.getElementById("networksJSON").style.display = "block";
+            document.getElementById("networksJSON").innerText = JSON.stringify(scannedNetworks, null, 2);
+
+            // Mostrar botón de exportar JSON
+            document.getElementById("exportJsonButton").style.display = "block";
+
+            // Generar una tabla con los resultados
+            let output = `
+                <table border="1">
+                    <thead>
+                        <tr>
+                            <th>BSSID</th>
+                            <th>Potencia</th>
+                            <th>Canal</th>
+                            <th>Cifrado</th>
+                            <th>SSID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            if (scannedNetworks.length > 0) {
+                scannedNetworks.forEach((network) => {
+                    output += `
+                        <tr>
+                            <td>${network.bssid}</td>
+                            <td>${network.signal_level || 'N/A'} dBm</td>
+                            <td>${network.channel || 'N/A'}</td>
+                            <td>${network.encryption || 'N/A'}</td>
+                            <td>${network.ssid || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                output += `
+                    <tr>
+                        <td colspan="5">No se encontraron redes WiFi.</td>
+                    </tr>
+                `;
+            }
+            output += `</tbody></table>`;
+
+            // Mostrar la tabla
+            document.getElementById("networksList").innerHTML = output;
+        }
+
+        function exportNetworksJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(scannedNetworks, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "networks.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            document.body.removeChild(downloadAnchor);
+        }
+
+        async function captureHandshake() {
+            const bssid = document.getElementById("bssid").value;
+            const channel = document.getElementById("channel").value;
+            const response = await fetch('/capture_handshake', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bssid, channel })
+            });
+            alert((await response.json()).status);
+        }
+
+        async function deauth() {
+            const response = await fetch('/deauth', { method: 'POST' });
+            alert((await response.json()).status);
+        }
+
+        async function uploadDictionary() {
+            const formData = new FormData(document.getElementById("dictionaryForm"));
+            const response = await fetch('/upload_dictionary', {
+                method: 'POST',
+                body: formData
+            });
+            alert((await response.json()).status);
+        }
+
+        async function crackPassword() {
+            const response = await fetch('/crack_password', { method: 'POST' });
+            document.getElementById("crackOutput").innerText = (await response.json()).output;
+        }
+
+        async function stopMonitor() {
+            const response = await fetch('/stop_monitor', { method: 'POST' });
+            alert((await response.json()).status);
+        }
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Auditoría</title>
+</head>
+<body>
+    <h1>Panel de Auditoría Wi-Fi</h1>
+    <h2>Escanear Redes WiFi</h2>
+    <form action="/scan_wifi" method="GET">
+        <button type="submit">Escanear WiFi</button>
+    </form>
+
+    <h2>Desautenticación</h2>
+    <form action="/deauth" method="POST">
+        <label for="bssid">BSSID:</label>
+        <input type="text" id="bssid" name="bssid" required>
+        <br>
+        <label for="client">Cliente (opcional):</label>
+        <input type="text" id="client" name="client">
+        <br>
+        <button type="submit">Ejecutar Desautenticación</button>
+    </form>
+
+    <h2>Crear Fake AP</h2>
+    <form action="/create_fake_ap" method="POST">
+        <label for="ssid">SSID:</label>
+        <input type="text" id="ssid" name="ssid" required>
+        <br>
+        <label for="channel">Canal:</label>
+        <input type="text" id="channel" name="channel" required>
+        <br>
+        <button type="submit">Crear Fake AP</button>
+    </form>
+
+    <h2>Capturar Handshake</h2>
+    <form action="/capture_handshake" method="POST">
+        <label for="bssid">BSSID:</label>
+        <input type="text" id="bssid" name="bssid" required>
+        <br>
+        <label for="channel">Canal:</label>
+        <input type="text" id="channel" name="channel" required>
+        <br>
+        <button type="submit">Capturar Handshake</button>
+    </form>
+</body>
+</html>

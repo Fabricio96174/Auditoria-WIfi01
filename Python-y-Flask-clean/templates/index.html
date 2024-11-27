@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demostración de Hashing</title>
+    <script>
+        async function fetchInterfaces() {
+            const response = await fetch('/list_interfaces');
+            const interfaces = await response.json();
+            const select = document.getElementById('interface-select');
+            select.innerHTML = '';
+            interfaces.forEach(interface => {
+                const option = document.createElement('option');
+                option.value = interface;
+                option.text = interface;
+                select.appendChild(option);
+            });
+        }
+        window.onload = fetchInterfaces;
+    </script>
+</head>
+<body>
+    <h1>Demostración de Hashing</h1>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('register') }}">Registro de Usuario</a></li>
+            <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
+            <li><a href="{{ url_for('audit_panel') }}">Panel de Auditoría</a></li>
+        </ul>
+    </nav>
+
+    <h2>Escanear Redes WiFi</h2>
+    <form action="/scan_wifi" method="GET">
+        <button type="submit">Escanear WiFi</button>
+    </form>
+
+    <h2>Modo Monitor</h2>
+    <form action="/start_monitor_mode" method="POST">
+        <label for="interface">Seleccionar Interfaz:</label>
+        <select id="interface-select" name="interface">
+            <option value="" disabled selected>Seleccionar Interfaz</option>
+        </select>
+        <button type="submit">Iniciar Modo Monitor</button>
+    </form>
+    <form action="/stop_monitor_mode" method="POST">
+        <label for="interface">Seleccionar Interfaz:</label>
+        <select id="interface-select" name="interface">
+            <option value="" disabled selected>Seleccionar Interfaz</option>
+        </select>
+        <button type="submit">Detener Modo Monitor</button>
+    </form>
+
+    <h2>Reset</h2>
+    <form action="/reset" method="GET">
+        <button type="submit">Reset</button>
+    </form>
+</body>
+</html>

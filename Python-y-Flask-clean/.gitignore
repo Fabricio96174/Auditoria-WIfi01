@@ -1,0 +1,19 @@
+# Ignorar entornos virtuales
+hash_demo_proyect/Lib/
+hash_demo_proyect/include/
+hash_demo_proyect/Scripts/
+
+# Ignorar archivos de sistema
+*.pyc
+__pycache__/
+.DS_Store
+
+# Ignorar logs
+logs/
+
+# Ignorar archivos de usuario y sesiones
+users/users.txt
+
+# Ignorar configuraciones de IDE y editor
+.vscode/
+.idea/
